@@ -1,0 +1,40 @@
+﻿@inject ObjectDetectorService ObjectDetectorService
+@inject ISnackbar Snackbar
+@implements IDisposable
+
+<MudStack Spacing=1 Style="width: 50%">
+    <MudToolBar DisableGutters="true" Class="gap-4">
+        <MudButton OnClick="Detect" Disabled="@(_usedImageURL != _imageURL || imagesProcessing || !ObjectDetectorService.IsInitialized())" Color="Color.Success" Variant="Variant.Filled">Detect</MudButton>
+        <MudButton OnClick="Reset" Disabled="@(_usedImageURL == _imageURL || imagesProcessing || !ObjectDetectorService.IsInitialized())" Color="Color.Warning" Variant="Variant.Filled">Reset</MudButton>
+    </MudToolBar>
+    <MudProgressLinear Class=@(imagesProcessing ? "visible my-7" : "invisible my-7") Color="Color.Secondary" Indeterminate="true" />
+    <MudImage Fluid="true" Src=@_usedImageURL Alt="Bus" Class="rounded-lg" />
+</MudStack>
+
+@code {
+    private const string _imageURL = "_content/WASMObjectDetectorShared/assets/bus.png";
+    private string _usedImageURL = _imageURL;
+    private bool imagesProcessing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ObjectDetectorService.InitializeAsync();
+    }
+
+    private async Task Detect()
+    {
+        imagesProcessing = true;
+        _usedImageURL = await ObjectDetectorService.DetectAsync(_imageURL);
+        imagesProcessing = false;
+    }
+
+    private void Reset()
+    {
+        _usedImageURL = _imageURL;
+    }
+
+    public void Dispose()
+    {
+        ObjectDetectorService.Dispose();
+    }
+}
